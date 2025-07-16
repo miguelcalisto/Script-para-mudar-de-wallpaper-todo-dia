@@ -16,7 +16,7 @@ Antes de usar o script, instale os seguintes pacotes:
 sudo apt update
 sudo apt install feh fish
 
-
-chmod +x sc.fish
-
+```
+## como usar 
+sudo chmod +x sc.fish
 fish ./sc.fish
