@@ -29,7 +29,7 @@ sudo apt install feh fish
 ## Observação
 - Apenas foi testado no debian com x11 e i3wm
 - quando o script perguntar o caminho das pastas dos wallpapers o caminho deve ser absoluto como /home/seu_nome/Dowloads/Walls
-
+- os scripts .fish e .bash devem fazer as mesmas coisas caso algum não funcione tente o outro
 
 ## ⚙️ Como funciona
 
