@@ -63,7 +63,7 @@ Ao executar o script principal:
 5. **Cria o serviço systemd e o timer correspondente**, que:
    - Executa `scripti3.fish` automaticamente todos os dias à **meia-noite**
    - Garante persistência mesmo após reinicializações
-   - esse serviço fica em ~/.config/systemd/user/ 
+   - esse serviço fica em `~/.config/systemd/user/`
 
    Você pode verificar se o timer está ativo com:
 

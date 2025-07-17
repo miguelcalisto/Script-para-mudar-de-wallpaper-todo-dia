@@ -1,4 +1,10 @@
 #!/usr/bin/env fish
+# Verifica se o Fish está instalado
+if not type -q fish
+    echo "❌ O shell 'fish' não está instalado. Por favor instale com:"
+    echo "    sudo apt install fish"
+    exit 1
+end
 
 echo ""
 echo "=== Configurador automático de troca diária de wallpaper ==="
