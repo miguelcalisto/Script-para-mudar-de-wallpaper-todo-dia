@@ -18,9 +18,9 @@ sudo apt install feh fish
 ```
 ## como usar 
 ```bash
- sudo chmod +x sc.fish
+ sudo chmod +x script.fish
 
- fish ./sc.fish
+ fish ./script.fish
  ```
 
 
@@ -105,5 +105,7 @@ rm ~/.config/systemd/user/wall.timer
 # Recarregar systemd do usuário
 systemctl --user daemon-reload
 
+#Remover pastas e arquivos criados
+rm -rf ~/SCRIPTS
 ```
 
