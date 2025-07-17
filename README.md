@@ -86,3 +86,23 @@ Ao executar o script principal:
 6. **Ativa e inicia o timer automaticamente**, sem necessidade de reiniciar o sistema.
 
 ---
+
+
+
+
+## ❌ Como remover completamente
+```
+# Parar e desativar o timer
+systemctl --user stop wall.timer
+systemctl --user disable wall.timer
+
+# Remover scripts e arquivos criados
+rm -rf ~/SCRIPTS/
+rm ~/.config/systemd/user/wall.service
+rm ~/.config/systemd/user/wall.timer
+
+# Recarregar systemd do usuário
+systemctl --user daemon-reload
+
+```
+
