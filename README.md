@@ -53,6 +53,7 @@ Ao executar o script principal:
 ```
 
 4. **Gera o script `scripti3.fish`**, responsável por:
+   - Esse é o script responsavel pela lógica de troca de wallpapers a intenção é que não se repita os wallpapers como um ciclo
    - Obter o **dia do ano atual** (ex: 001 a 365)
    - Listar as imagens da pasta ordenadas por **tamanho decrescente**
    - Calcular o índice da imagem do dia com base no número do dia
@@ -62,7 +63,7 @@ Ao executar o script principal:
 5. **Cria o serviço systemd e o timer correspondente**, que:
    - Executa `scripti3.fish` automaticamente todos os dias à **meia-noite**
    - Garante persistência mesmo após reinicializações
-
+   - esse serviço fica em ~/.config/systemd/user/ 
 
    Você pode verificar se o timer está ativo com:
 
