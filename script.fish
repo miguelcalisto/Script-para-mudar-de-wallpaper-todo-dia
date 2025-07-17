@@ -86,3 +86,4 @@ echo ""
 echo "✅ Tudo pronto! O wallpaper será alterado automaticamente todos os dias à meia-noite."
 echo "Você pode acompanhar os logs em: $log_path"
 
+
