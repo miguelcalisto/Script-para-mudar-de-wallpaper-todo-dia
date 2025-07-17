@@ -18,6 +18,7 @@ sudo apt install feh fish
 
 ```
 ## como usar 
-- sudo chmod +x sc.fish
+```bash
+ sudo chmod +x sc.fish
 
-- fish ./sc.fish
+ fish ./sc.fish
