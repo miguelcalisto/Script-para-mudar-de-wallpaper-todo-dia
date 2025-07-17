@@ -79,7 +79,7 @@ echo "🔁 Recarregando systemd e ativando timer..."
 systemctl --user daemon-reexec
 systemctl --user daemon-reload
 systemctl --user enable wall.timer
-systemctl --user start wall.timer
+systemctl --user start wall.service
 
 echo ""
 echo "✅ Tudo pronto! O wallpaper será alterado automaticamente todos os dias à meia-noite."

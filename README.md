@@ -18,6 +18,8 @@ sudo apt install feh fish
 ```
 ## como usar 
 ```bash
+ cd  Script-para-mudar-de-wallpaper-todo-dia
+   
  sudo chmod +x script.fish
 
  fish ./script.fish
