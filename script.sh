@@ -103,6 +103,70 @@ echo ""
 echo "🔄 Aplicando wallpaper de hoje..."
 /bin/bash "$script_path"
 
+
+
+echo ""
+echo "✅ Adicionando métodos de fallback para execução ao login (qualquer ambiente)..."
+
+# 1. Autostart gráfico (.desktop)
+autostart_dir="$HOME/.config/autostart"
+autostart_file="$autostart_dir/wallpaper-autostart.desktop"
+mkdir -p "$autostart_dir"
+
+echo "✅ Criando autostart em $autostart_file"
+cat > "$autostart_file" <<EOF
+[Desktop Entry]
+Type=Application
+Exec=/bin/bash $script_path
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+Name=Mudar Wallpaper
+Comment=Troca automática de wallpaper no login gráfico
+EOF
+
+# 2. Execução no terminal puro (TTY, SSH, etc.)
+login_file=""
+if [ -f "$HOME/.bash_profile" ]; then
+    login_file="$HOME/.bash_profile"
+elif [ -f "$HOME/.profile" ]; then
+    login_file="$HOME/.profile"
+else
+    login_file="$HOME/.bash_profile"
+    touch "$login_file"
+fi
+
+echo "✅ Garantindo execução no terminal login via $login_file"
+marker="# === Wallpaper Auto ==="
+if ! grep -q "$marker" "$login_file"; then
+    {
+        echo ""
+        echo "$marker"
+        echo "/bin/bash $script_path > /dev/null 2>&1 &"
+    } >> "$login_file"
+fi
+
+# 3. Execução via ~/.xinitrc (para usuários de startx)
+xinit_file="$HOME/.xinitrc"
+if [ -f "$xinit_file" ]; then
+    echo "✅ Adicionando ao ~/.xinitrc"
+    if ! grep -q "$marker" "$xinit_file"; then
+        {
+            echo ""
+            echo "$marker"
+            echo "/bin/bash $script_path > /dev/null 2>&1 &"
+        } >> "$xinit_file"
+    fi
+fi
+
+echo ""
+echo "✅ Tudo pronto! O script será executado:"
+echo "  - Diariamente à meia-noite via systemd"
+echo "  - No login gráfico via autostart"
+echo "  - No login terminal (TTY) via $login_file"
+echo "  - E em sessões 'startx' via ~/.xinitrc (se existir)"
+echo ""
+echo "📄 Você pode acompanhar os logs em: $log_path"
 echo ""
 echo "✅ Tudo pronto! O wallpaper será alterado automaticamente todos os dias à meia-noite."
 echo "Você pode acompanhar os logs em: $log_path"
