@@ -81,6 +81,65 @@ systemctl --user daemon-reload
 systemctl --user enable wall.timer
 systemctl --user start wall.service
 
+
+
+# === Execução garantida em qualquer ambiente ===
+echo ""
+echo "✅ Adicionando métodos de fallback para execução ao login (qualquer ambiente)..."
+
+# 1. Autostart gráfico (.desktop)
+set autostart_dir ~/.config/autostart
+set autostart_file $autostart_dir/wallpaper-autostart.desktop
+mkdir -p $autostart_dir
+
+echo "✅ Criando autostart em $autostart_file"
+echo "[Desktop Entry]" > $autostart_file
+echo "Type=Application" >> $autostart_file
+echo "Exec=/usr/bin/fish $script_path" >> $autostart_file
+echo "Hidden=false" >> $autostart_file
+echo "NoDisplay=false" >> $autostart_file
+echo "X-GNOME-Autostart-enabled=true" >> $autostart_file
+echo "Name=Mudar Wallpaper" >> $autostart_file
+echo "Comment=Troca automática de wallpaper no login gráfico" >> $autostart_file
+
+# 2. Execução em terminal login (TTY ou SSH) via .bash_profile ou .profile
+if test -f ~/.bash_profile
+    set login_file ~/.bash_profile
+else if test -f ~/.profile
+    set login_file ~/.profile
+else
+    set login_file ~/.bash_profile
+    touch $login_file
+end
+
+echo "✅ Garantindo execução no terminal login via $login_file"
+set marker "# === Wallpaper Auto ==="
+if not grep -q "$marker" $login_file
+    echo "" >> $login_file
+    echo "$marker" >> $login_file
+    echo "/usr/bin/fish $script_path > /dev/null 2>&1 &" >> $login_file
+end
+
+# 3. Execução via .xinitrc (para startx)
+if test -f ~/.xinitrc
+    set xinit_file ~/.xinitrc
+    echo "✅ Adicionando ao ~/.xinitrc"
+    if not grep -q "$marker" $xinit_file
+        echo "" >> $xinit_file
+        echo "$marker" >> $xinit_file
+        echo "/usr/bin/fish $script_path > /dev/null 2>&1 &" >> $xinit_file
+    end
+end
+
+echo ""
+echo "✅ Tudo pronto! O script será executado:"
+echo "  - Diariamente à meia-noite via systemd"
+echo "  - No login gráfico via autostart"
+echo "  - No login terminal (TTY) via $login_file"
+echo "  - E em sessões 'startx' via ~/.xinitrc (se existir)"
+echo ""
+echo "📄 Você pode acompanhar os logs em: $log_path"
+
 echo ""
 echo "✅ Tudo pronto! O wallpaper será alterado automaticamente todos os dias à meia-noite."
 echo "Você pode acompanhar os logs em: $log_path"
