@@ -38,28 +38,51 @@ timer_path=~/.config/systemd/user/wall.timer
 
 # Criando o scripti3.sh
 echo "✅ Criando script de troca de wallpaper em $script_path"
-cat > "$script_path" <<EOF
+cat > "$script_path" <<'EOF'
 #!/usr/bin/env bash
 
-wallpaper_dir="$wallpaper_dir"
-log_path="$log_path"
+wallpaper_dir="__WALLPAPER_DIR__"
+log_path="__LOG_PATH__"
 
-mapfile -t wallpapers < <(find "\$wallpaper_dir" -maxdepth 1 -type f -iregex '.*\.\(png\|jpe?g\)$' | sort)
+# Função para detectar DBUS_SESSION_BUS_ADDRESS do processo do usuário (ex: gnome-session)
+detect_dbus_address() {
+    for pid in $(pgrep -u "$USER" gnome-session); do
+        if [ -r /proc/$pid/environ ]; then
+            # Extrai DBUS_SESSION_BUS_ADDRESS
+            local dbus_addr=$(strings /proc/$pid/environ | grep ^DBUS_SESSION_BUS_ADDRESS= | head -n1 | cut -d= -f2-)
+            if [ -n "$dbus_addr" ]; then
+                echo "$dbus_addr"
+                return 0
+            fi
+        fi
+    done
+    # Fallback genérico
+    echo "unix:path=/run/user/$(id -u)/bus"
+}
 
-num=\${#wallpapers[@]}
-if [ "\$num" -eq 0 ]; then
-    echo "Nenhuma imagem válida encontrada em \$wallpaper_dir" >> "\$log_path"
+export DISPLAY=:0
+export DBUS_SESSION_BUS_ADDRESS=$(detect_dbus_address)
+
+mapfile -t wallpapers < <(find "$wallpaper_dir" -maxdepth 1 -type f -iregex '.*\.\(png\|jpe?g\)$' | sort)
+
+num=${#wallpapers[@]}
+if [ "$num" -eq 0 ]; then
+    echo "Nenhuma imagem válida encontrada em $wallpaper_dir" >> "$log_path"
     exit 1
 fi
 
-day_of_year=\$(date +%j)
-index=\$(( (day_of_year - 1) % num ))
+day_of_year=$(date +%j)
+index=$(( (day_of_year - 1) % num ))
 
-selected="\${wallpapers[\$index]}"
+selected="${wallpapers[$index]}"
 
-echo "Mudando para o wallpaper do dia \$day_of_year: \$selected" >> "\$log_path"
-feh --bg-scale "\$selected" >> "\$log_path" 2>&1
+echo "Mudando para o wallpaper do dia $day_of_year: $selected" >> "$log_path"
+feh --bg-scale "$selected" >> "$log_path" 2>&1
 EOF
+
+# Substituir placeholders no script criado
+sed -i "s|__WALLPAPER_DIR__|$wallpaper_dir|g" "$script_path"
+sed -i "s|__LOG_PATH__|$log_path|g" "$script_path"
 
 chmod +x "$script_path"
 
@@ -102,7 +125,6 @@ systemctl --user start wall.service
 echo ""
 echo "🔄 Aplicando wallpaper de hoje..."
 /bin/bash "$script_path"
-
 
 echo ""
 echo "✅ Adicionando métodos de fallback para execução ao login (qualquer ambiente)..."

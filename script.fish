@@ -31,22 +31,46 @@ set timer_path ~/.config/systemd/user/wall.timer
 
 # Criando o scripti3.fish
 echo "✅ Criando script de troca de wallpaper em $script_path"
+
 echo "#!/usr/bin/env fish" > $script_path
 echo "set wallpaper_dir \"$wallpaper_dir\"" >> $script_path
-echo "set wallpapers (find \$wallpaper_dir -maxdepth 1 -type f -iregex '.*\\.(png|jpe?g)$' | sort)" >> $script_path
+echo "set log_path \"$log_path\"" >> $script_path
+
+# Função para detectar DBUS_SESSION_BUS_ADDRESS no fish
+echo 'function detect_dbus_address' >> $script_path
+echo '    for pid in (pgrep -u $USER gnome-session)' >> $script_path
+echo '        if test -e /proc/$pid/environ' >> $script_path
+echo '            set -lx DBUS_SESSION_BUS_ADDRESS (strings /proc/$pid/environ | grep DBUS_SESSION_BUS_ADDRESS | head -n 1 | cut -d"=" -f2-)' >> $script_path
+echo '            if test -n "$DBUS_SESSION_BUS_ADDRESS"' >> $script_path
+echo '                return 0' >> $script_path
+echo '            end' >> $script_path
+echo '        end' >> $script_path
+echo '    end' >> $script_path
+echo '    # fallback padrão se não encontrou' >> $script_path
+echo '    set -lx DBUS_SESSION_BUS_ADDRESS "unix:path=/run/user/(id -u)/bus"' >> $script_path
+echo 'end' >> $script_path
+echo "detect_dbus_address" >> $script_path
+
+echo "set -lx DISPLAY :0" >> $script_path
+
+# Lista wallpapers (png, jpg) ordenados
+echo "set wallpapers (find \$wallpaper_dir -maxdepth 1 -type f -iregex '.*\\.(png|jpe?g)' | sort)" >> $script_path
 echo "set num (count \$wallpapers)" >> $script_path
+
 echo "" >> $script_path
 echo "if test \$num -eq 0" >> $script_path
-echo "    echo \"Nenhuma imagem válida encontrada em \$wallpaper_dir\" >> $log_path" >> $script_path
+echo "    echo \"Nenhuma imagem válida encontrada em \$wallpaper_dir\" >> \$log_path" >> $script_path
 echo "    exit 1" >> $script_path
 echo "end" >> $script_path
+
 echo "" >> $script_path
 echo "set day_of_year (date +%j)" >> $script_path
 echo "set index (math \"(\$day_of_year - 1) % \$num + 1\")" >> $script_path
 echo "set selected \$wallpapers[\$index]" >> $script_path
+
 echo "" >> $script_path
-echo "echo \"Mudando para o wallpaper do dia \$day_of_year: \$selected\" >> $log_path" >> $script_path
-echo "feh --bg-scale \$selected >> $log_path 2>&1" >> $script_path
+echo "echo \"Mudando para o wallpaper do dia \$day_of_year: \$selected\" >> \$log_path" >> $script_path
+echo "feh --bg-scale \$selected >> \$log_path 2>&1" >> $script_path
 
 chmod +x $script_path
 
@@ -57,8 +81,8 @@ echo "Description=Mudar wallpaper à meia-noite" >> $service_path
 echo "" >> $service_path
 echo "[Service]" >> $service_path
 echo "Type=oneshot" >> $service_path
-echo "Environment=\"DISPLAY=:0\"" >> $service_path
-echo "Environment=\"DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/(id -u)/bus\"" >> $service_path
+echo "Environment=DISPLAY=:0" >> $service_path
+echo "Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$(id -u)/bus" >> $service_path
 echo "ExecStart=/usr/bin/fish $script_path" >> $service_path
 
 # Criando wall.timer
@@ -147,4 +171,3 @@ echo "📄 Você pode acompanhar os logs em: $log_path"
 echo ""
 echo "✅ Tudo pronto! O wallpaper será alterado automaticamente todos os dias à meia-noite."
 echo "Você pode acompanhar os logs em: $log_path"
-
