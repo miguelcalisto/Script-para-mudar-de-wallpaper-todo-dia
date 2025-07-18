@@ -33,7 +33,7 @@ set timer_path ~/.config/systemd/user/wall.timer
 echo "✅ Criando script de troca de wallpaper em $script_path"
 echo "#!/usr/bin/env fish" > $script_path
 echo "set wallpaper_dir \"$wallpaper_dir\"" >> $script_path
-echo "set wallpapers (ls -1S \$wallpaper_dir | grep -iE '\\.(png|jpe?g)\$')" >> $script_path
+echo "set wallpapers (find \$wallpaper_dir -maxdepth 1 -type f -iregex '.*\\.(png|jpe?g)$' | sort)" >> $script_path
 echo "set num (count \$wallpapers)" >> $script_path
 echo "" >> $script_path
 echo "if test \$num -eq 0" >> $script_path
@@ -43,10 +43,10 @@ echo "end" >> $script_path
 echo "" >> $script_path
 echo "set day_of_year (date +%j)" >> $script_path
 echo "set index (math \"(\$day_of_year - 1) % \$num + 1\")" >> $script_path
-echo "set selected \"\$wallpaper_dir/\$wallpapers[\$index]\"" >> $script_path
+echo "set selected \$wallpapers[\$index]" >> $script_path
 echo "" >> $script_path
 echo "echo \"Mudando para o wallpaper do dia \$day_of_year: \$selected\" >> $log_path" >> $script_path
-echo "feh --bg-scale \"\$selected\" >> $log_path 2>&1" >> $script_path
+echo "feh --bg-scale \$selected >> $log_path 2>&1" >> $script_path
 
 chmod +x $script_path
 
@@ -58,7 +58,7 @@ echo "" >> $service_path
 echo "[Service]" >> $service_path
 echo "Type=oneshot" >> $service_path
 echo "Environment=\"DISPLAY=:0\"" >> $service_path
-echo "Environment=\"DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus\"" >> $service_path
+echo "Environment=\"DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/(id -u)/bus\"" >> $service_path
 echo "ExecStart=/usr/bin/fish $script_path" >> $service_path
 
 # Criando wall.timer
@@ -81,11 +81,12 @@ systemctl --user daemon-reload
 systemctl --user enable wall.timer
 systemctl --user start wall.service
 
-
-
 # === Execução garantida em qualquer ambiente ===
 echo ""
 echo "✅ Adicionando métodos de fallback para execução ao login (qualquer ambiente)..."
+
+set marker "# === Wallpaper Auto ==="
+set command "/usr/bin/fish $script_path > /dev/null 2>&1 &"
 
 # 1. Autostart gráfico (.desktop)
 set autostart_dir ~/.config/autostart
@@ -95,7 +96,7 @@ mkdir -p $autostart_dir
 echo "✅ Criando autostart em $autostart_file"
 echo "[Desktop Entry]" > $autostart_file
 echo "Type=Application" >> $autostart_file
-echo "Exec=/usr/bin/fish $script_path" >> $autostart_file
+echo "Exec=$command" >> $autostart_file
 echo "Hidden=false" >> $autostart_file
 echo "NoDisplay=false" >> $autostart_file
 echo "X-GNOME-Autostart-enabled=true" >> $autostart_file
@@ -113,21 +114,24 @@ else
 end
 
 echo "✅ Garantindo execução no terminal login via $login_file"
-set marker "# === Wallpaper Auto ==="
-if not grep -q "$marker" $login_file
+if not grep -qF "$marker" $login_file
     echo "" >> $login_file
     echo "$marker" >> $login_file
-    echo "/usr/bin/fish $script_path > /dev/null 2>&1 &" >> $login_file
+    echo "$command" >> $login_file
+else
+    echo "ℹ️ Execução já configurada no $login_file"
 end
 
 # 3. Execução via .xinitrc (para startx)
 if test -f ~/.xinitrc
     set xinit_file ~/.xinitrc
     echo "✅ Adicionando ao ~/.xinitrc"
-    if not grep -q "$marker" $xinit_file
+    if not grep -qF "$marker" $xinit_file
         echo "" >> $xinit_file
         echo "$marker" >> $xinit_file
-        echo "/usr/bin/fish $script_path > /dev/null 2>&1 &" >> $xinit_file
+        echo "$command" >> $xinit_file
+    else
+        echo "ℹ️ Execução já configurada no ~/.xinitrc"
     end
 end
 
@@ -143,5 +147,4 @@ echo "📄 Você pode acompanhar os logs em: $log_path"
 echo ""
 echo "✅ Tudo pronto! O wallpaper será alterado automaticamente todos os dias à meia-noite."
 echo "Você pode acompanhar os logs em: $log_path"
-
 

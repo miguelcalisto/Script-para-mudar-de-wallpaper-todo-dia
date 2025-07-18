@@ -104,9 +104,11 @@ echo "🔄 Aplicando wallpaper de hoje..."
 /bin/bash "$script_path"
 
 
-
 echo ""
 echo "✅ Adicionando métodos de fallback para execução ao login (qualquer ambiente)..."
+
+MARKER="# === Wallpaper Auto ==="
+COMMAND="/bin/bash $script_path > /dev/null 2>&1 &"
 
 # 1. Autostart gráfico (.desktop)
 autostart_dir="$HOME/.config/autostart"
@@ -117,7 +119,7 @@ echo "✅ Criando autostart em $autostart_file"
 cat > "$autostart_file" <<EOF
 [Desktop Entry]
 Type=Application
-Exec=/bin/bash $script_path
+Exec=$COMMAND
 Hidden=false
 NoDisplay=false
 X-GNOME-Autostart-enabled=true
@@ -137,37 +139,41 @@ else
 fi
 
 echo "✅ Garantindo execução no terminal login via $login_file"
-marker="# === Wallpaper Auto ==="
-if ! grep -q "$marker" "$login_file"; then
+if ! grep -qF "$MARKER" "$login_file"; then
     {
         echo ""
-        echo "$marker"
-        echo "/bin/bash $script_path > /dev/null 2>&1 &"
+        echo "$MARKER"
+        echo "$COMMAND"
     } >> "$login_file"
+else
+    echo "ℹ️ Execução já configurada no $login_file"
 fi
 
 # 3. Execução via ~/.xinitrc (para usuários de startx)
 xinit_file="$HOME/.xinitrc"
 if [ -f "$xinit_file" ]; then
     echo "✅ Adicionando ao ~/.xinitrc"
-    if ! grep -q "$marker" "$xinit_file"; then
+    if ! grep -qF "$MARKER" "$xinit_file"; then
         {
             echo ""
-            echo "$marker"
-            echo "/bin/bash $script_path > /dev/null 2>&1 &"
+            echo "$MARKER"
+            echo "$COMMAND"
         } >> "$xinit_file"
+    else
+        echo "ℹ️ Execução já configurada no ~/.xinitrc"
     fi
 fi
 
 echo ""
-echo "✅ Tudo pronto! O script será executado:"
+echo "📄 Você pode acompanhar os logs em: $log_path"
+echo ""
+echo "✅ Tudo pronto! O wallpaper será alterado automaticamente todos os dias à meia-noite,"
+echo "   e também a cada login do usuário."
+echo ""
+echo "✅ O script será executado:"
 echo "  - Diariamente à meia-noite via systemd"
 echo "  - No login gráfico via autostart"
 echo "  - No login terminal (TTY) via $login_file"
 echo "  - E em sessões 'startx' via ~/.xinitrc (se existir)"
 echo ""
-echo "📄 Você pode acompanhar os logs em: $log_path"
-echo ""
-echo "✅ Tudo pronto! O wallpaper será alterado automaticamente todos os dias à meia-noite."
-echo "Você pode acompanhar os logs em: $log_path"
 
