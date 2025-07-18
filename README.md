@@ -110,3 +110,6 @@ systemctl --user daemon-reload
 #Remover pastas e arquivos criados
 rm -rf ~/SCRIPTS
 ```
+
+## AVISO
+foi adicionado a execução do script3 em .profile e .config/autostart
