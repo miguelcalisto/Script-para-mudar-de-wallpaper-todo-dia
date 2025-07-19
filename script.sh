@@ -19,6 +19,7 @@ fi
 
 # Solicita o diretório de wallpapers
 read -rp "Informe o caminho da pasta com os wallpapers: " wallpaper_dir
+wallpaper_dir=$(eval echo "$wallpaper_dir")  # Expande ~ corretamente
 
 # Verifica se a pasta existe
 if [ ! -d "$wallpaper_dir" ]; then
@@ -35,6 +36,26 @@ script_path=~/SCRIPTS/scripti3.sh
 log_path=~/SCRIPTS/LOGS/logs_scriptDataDoAnoTamanho.log
 service_path=~/.config/systemd/user/wall.service
 timer_path=~/.config/systemd/user/wall.timer
+
+# Verifica se 'linger' está ativado
+linger_status=$(loginctl show-user "$USER" | grep Linger | cut -d= -f2)
+if [ "$linger_status" != "yes" ]; then
+    echo ""
+    echo "⚠  'linger' não está habilitado para o usuário '$USER'."
+    echo "    Isso pode impedir que o systemd --user execute o timer corretamente fora da sessão gráfica."
+    read -rp "❓ Deseja ativar o 'linger' agora? (requer sudo) [s/N]: " enable_linger
+    enable_linger=${enable_linger,,}
+    if [[ "$enable_linger" == "s" || "$enable_linger" == "y" ]]; then
+        if sudo loginctl enable-linger "$USER"; then
+            echo "✅ 'linger' ativado com sucesso para '$USER'."
+        else
+            echo "❌ Falha ao ativar 'linger'. Você pode ativar manualmente com:"
+            echo "    sudo loginctl enable-linger $USER"
+        fi
+    else
+        echo "⚠ Prosseguindo sem ativar 'linger'. O timer pode não funcionar corretamente fora da sessão."
+    fi
+fi
 
 # Criando o scripti3.sh
 echo "✅ Criando script de troca de wallpaper em $script_path"
@@ -103,14 +124,10 @@ echo ""
 echo "🔄 Aplicando wallpaper de hoje..."
 /bin/bash "$script_path"
 
-
+# Fallback: apenas autostart gráfico
 echo ""
-echo "✅ Adicionando métodos de fallback para execução ao login (qualquer ambiente)..."
+echo "✅ Adicionando método de fallback para login gráfico..."
 
-MARKER="# === Wallpaper Auto ==="
-COMMAND="/bin/bash $script_path > /dev/null 2>&1 &"
-
-# 1. Autostart gráfico (.desktop)
 autostart_dir="$HOME/.config/autostart"
 autostart_file="$autostart_dir/wallpaper-autostart.desktop"
 mkdir -p "$autostart_dir"
@@ -119,7 +136,7 @@ echo "✅ Criando autostart em $autostart_file"
 cat > "$autostart_file" <<EOF
 [Desktop Entry]
 Type=Application
-Exec=$COMMAND
+Exec=/bin/bash $script_path
 Hidden=false
 NoDisplay=false
 X-GNOME-Autostart-enabled=true
@@ -127,53 +144,12 @@ Name=Mudar Wallpaper
 Comment=Troca automática de wallpaper no login gráfico
 EOF
 
-# 2. Execução no terminal puro (TTY, SSH, etc.)
-login_file=""
-if [ -f "$HOME/.bash_profile" ]; then
-    login_file="$HOME/.bash_profile"
-elif [ -f "$HOME/.profile" ]; then
-    login_file="$HOME/.profile"
-else
-    login_file="$HOME/.bash_profile"
-    touch "$login_file"
-fi
-
-echo "✅ Garantindo execução no terminal login via $login_file"
-if ! grep -qF "$MARKER" "$login_file"; then
-    {
-        echo ""
-        echo "$MARKER"
-        echo "$COMMAND"
-    } >> "$login_file"
-else
-    echo "ℹ️ Execução já configurada no $login_file"
-fi
-
-# 3. Execução via ~/.xinitrc (para usuários de startx)
-xinit_file="$HOME/.xinitrc"
-if [ -f "$xinit_file" ]; then
-    echo "✅ Adicionando ao ~/.xinitrc"
-    if ! grep -qF "$MARKER" "$xinit_file"; then
-        {
-            echo ""
-            echo "$MARKER"
-            echo "$COMMAND"
-        } >> "$xinit_file"
-    else
-        echo "ℹ️ Execução já configurada no ~/.xinitrc"
-    fi
-fi
-
+echo ""
+echo "✅ Tudo pronto! O script será executado:"
+echo "  - Diariamente à meia-noite via systemd"
+echo "  - No login gráfico via autostart"
 echo ""
 echo "📄 Você pode acompanhar os logs em: $log_path"
 echo ""
-echo "✅ Tudo pronto! O wallpaper será alterado automaticamente todos os dias à meia-noite,"
-echo "   e também a cada login do usuário."
-echo ""
-echo "✅ O script será executado:"
-echo "  - Diariamente à meia-noite via systemd"
-echo "  - No login gráfico via autostart"
-echo "  - No login terminal (TTY) via $login_file"
-echo "  - E em sessões 'startx' via ~/.xinitrc (se existir)"
-echo ""
+echo "✅ Wallpaper automático configurado com sucesso!"
 
