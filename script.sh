@@ -19,6 +19,7 @@ fi
 
 # Solicita o diretório de wallpapers
 read -rp "Informe o caminho da pasta com os wallpapers: " wallpaper_dir
+wallpaper_dir=$(eval echo "$wallpaper_dir")  # Expande ~ corretamente
 
 # Verifica se a pasta existe
 if [ ! -d "$wallpaper_dir" ]; then
@@ -36,53 +37,50 @@ log_path=~/SCRIPTS/LOGS/logs_scriptDataDoAnoTamanho.log
 service_path=~/.config/systemd/user/wall.service
 timer_path=~/.config/systemd/user/wall.timer
 
+# Verifica se 'linger' está ativado
+linger_status=$(loginctl show-user "$USER" | grep Linger | cut -d= -f2)
+if [ "$linger_status" != "yes" ]; then
+    echo ""
+    echo "⚠️  'linger' não está habilitado para o usuário '$USER'."
+    echo "    Isso pode impedir que o systemd --user execute o timer corretamente fora da sessão gráfica."
+    read -rp "❓ Deseja ativar o 'linger' agora? (requer sudo) [s/N]: " enable_linger
+    enable_linger=${enable_linger,,}
+    if [[ "$enable_linger" == "s" || "$enable_linger" == "y" ]]; then
+        if sudo loginctl enable-linger "$USER"; then
+            echo "✅ 'linger' ativado com sucesso para '$USER'."
+        else
+            echo "❌ Falha ao ativar 'linger'. Você pode ativar manualmente com:"
+            echo "    sudo loginctl enable-linger $USER"
+        fi
+    else
+        echo "⚠️ Prosseguindo sem ativar 'linger'. O timer pode não funcionar corretamente fora da sessão."
+    fi
+fi
+
 # Criando o scripti3.sh
 echo "✅ Criando script de troca de wallpaper em $script_path"
-cat > "$script_path" <<'EOF'
+cat > "$script_path" <<EOF
 #!/usr/bin/env bash
 
-wallpaper_dir="__WALLPAPER_DIR__"
-log_path="__LOG_PATH__"
+wallpaper_dir="$wallpaper_dir"
+log_path="$log_path"
 
-# Função para detectar DBUS_SESSION_BUS_ADDRESS do processo do usuário (ex: gnome-session)
-detect_dbus_address() {
-    for pid in $(pgrep -u "$USER" gnome-session); do
-        if [ -r /proc/$pid/environ ]; then
-            # Extrai DBUS_SESSION_BUS_ADDRESS
-            local dbus_addr=$(strings /proc/$pid/environ | grep ^DBUS_SESSION_BUS_ADDRESS= | head -n1 | cut -d= -f2-)
-            if [ -n "$dbus_addr" ]; then
-                echo "$dbus_addr"
-                return 0
-            fi
-        fi
-    done
-    # Fallback genérico
-    echo "unix:path=/run/user/$(id -u)/bus"
-}
+mapfile -t wallpapers < <(find "\$wallpaper_dir" -maxdepth 1 -type f -iregex '.*\.\(png\|jpe?g\)$' | sort)
 
-export DISPLAY=:0
-export DBUS_SESSION_BUS_ADDRESS=$(detect_dbus_address)
-
-mapfile -t wallpapers < <(find "$wallpaper_dir" -maxdepth 1 -type f -iregex '.*\.\(png\|jpe?g\)$' | sort)
-
-num=${#wallpapers[@]}
-if [ "$num" -eq 0 ]; then
-    echo "Nenhuma imagem válida encontrada em $wallpaper_dir" >> "$log_path"
+num=\${#wallpapers[@]}
+if [ "\$num" -eq 0 ]; then
+    echo "Nenhuma imagem válida encontrada em \$wallpaper_dir" >> "\$log_path"
     exit 1
 fi
 
-day_of_year=$(date +%j)
-index=$(( (day_of_year - 1) % num ))
+day_of_year=\$(date +%j)
+index=\$(( (day_of_year - 1) % num ))
 
-selected="${wallpapers[$index]}"
+selected="\${wallpapers[\$index]}"
 
-echo "Mudando para o wallpaper do dia $day_of_year: $selected" >> "$log_path"
-feh --bg-scale "$selected" >> "$log_path" 2>&1
+echo "Mudando para o wallpaper do dia \$day_of_year: \$selected" >> "\$log_path"
+feh --bg-scale "\$selected" >> "\$log_path" 2>&1
 EOF
-
-# Substituir placeholders no script criado
-sed -i "s|__WALLPAPER_DIR__|$wallpaper_dir|g" "$script_path"
-sed -i "s|__LOG_PATH__|$log_path|g" "$script_path"
 
 chmod +x "$script_path"
 
@@ -126,11 +124,9 @@ echo ""
 echo "🔄 Aplicando wallpaper de hoje..."
 /bin/bash "$script_path"
 
+# Fallbacks em caso de falha no systemd
 echo ""
 echo "✅ Adicionando métodos de fallback para execução ao login (qualquer ambiente)..."
-
-MARKER="# === Wallpaper Auto ==="
-COMMAND="/bin/bash $script_path > /dev/null 2>&1 &"
 
 # 1. Autostart gráfico (.desktop)
 autostart_dir="$HOME/.config/autostart"
@@ -141,7 +137,7 @@ echo "✅ Criando autostart em $autostart_file"
 cat > "$autostart_file" <<EOF
 [Desktop Entry]
 Type=Application
-Exec=$COMMAND
+Exec=/bin/bash $script_path
 Hidden=false
 NoDisplay=false
 X-GNOME-Autostart-enabled=true
@@ -161,41 +157,36 @@ else
 fi
 
 echo "✅ Garantindo execução no terminal login via $login_file"
-if ! grep -qF "$MARKER" "$login_file"; then
+marker="# === Wallpaper Auto ==="
+if ! grep -q "$marker" "$login_file"; then
     {
         echo ""
-        echo "$MARKER"
-        echo "$COMMAND"
+        echo "$marker"
+        echo "/bin/bash $script_path > /dev/null 2>&1 &"
     } >> "$login_file"
-else
-    echo "ℹ️ Execução já configurada no $login_file"
 fi
 
 # 3. Execução via ~/.xinitrc (para usuários de startx)
 xinit_file="$HOME/.xinitrc"
 if [ -f "$xinit_file" ]; then
     echo "✅ Adicionando ao ~/.xinitrc"
-    if ! grep -qF "$MARKER" "$xinit_file"; then
+    if ! grep -q "$marker" "$xinit_file"; then
         {
             echo ""
-            echo "$MARKER"
-            echo "$COMMAND"
+            echo "$marker"
+            echo "/bin/bash $script_path > /dev/null 2>&1 &"
         } >> "$xinit_file"
-    else
-        echo "ℹ️ Execução já configurada no ~/.xinitrc"
     fi
 fi
 
 echo ""
-echo "📄 Você pode acompanhar os logs em: $log_path"
-echo ""
-echo "✅ Tudo pronto! O wallpaper será alterado automaticamente todos os dias à meia-noite,"
-echo "   e também a cada login do usuário."
-echo ""
-echo "✅ O script será executado:"
+echo "✅ Tudo pronto! O script será executado:"
 echo "  - Diariamente à meia-noite via systemd"
 echo "  - No login gráfico via autostart"
 echo "  - No login terminal (TTY) via $login_file"
 echo "  - E em sessões 'startx' via ~/.xinitrc (se existir)"
 echo ""
+echo "📄 Você pode acompanhar os logs em: $log_path"
+echo ""
+echo "✅ Wallpaper automático configurado com sucesso!"
 
