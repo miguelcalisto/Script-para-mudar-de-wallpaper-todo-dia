@@ -41,7 +41,7 @@ timer_path=~/.config/systemd/user/wall.timer
 linger_status=$(loginctl show-user "$USER" | grep Linger | cut -d= -f2)
 if [ "$linger_status" != "yes" ]; then
     echo ""
-    echo "⚠️  'linger' não está habilitado para o usuário '$USER'."
+    echo "⚠  'linger' não está habilitado para o usuário '$USER'."
     echo "    Isso pode impedir que o systemd --user execute o timer corretamente fora da sessão gráfica."
     read -rp "❓ Deseja ativar o 'linger' agora? (requer sudo) [s/N]: " enable_linger
     enable_linger=${enable_linger,,}
@@ -53,7 +53,7 @@ if [ "$linger_status" != "yes" ]; then
             echo "    sudo loginctl enable-linger $USER"
         fi
     else
-        echo "⚠️ Prosseguindo sem ativar 'linger'. O timer pode não funcionar corretamente fora da sessão."
+        echo "⚠ Prosseguindo sem ativar 'linger'. O timer pode não funcionar corretamente fora da sessão."
     fi
 fi
 
@@ -124,11 +124,10 @@ echo ""
 echo "🔄 Aplicando wallpaper de hoje..."
 /bin/bash "$script_path"
 
-# Fallbacks em caso de falha no systemd
+# Fallback: apenas autostart gráfico
 echo ""
-echo "✅ Adicionando métodos de fallback para execução ao login (qualquer ambiente)..."
+echo "✅ Adicionando método de fallback para login gráfico..."
 
-# 1. Autostart gráfico (.desktop)
 autostart_dir="$HOME/.config/autostart"
 autostart_file="$autostart_dir/wallpaper-autostart.desktop"
 mkdir -p "$autostart_dir"
@@ -145,46 +144,10 @@ Name=Mudar Wallpaper
 Comment=Troca automática de wallpaper no login gráfico
 EOF
 
-# 2. Execução no terminal puro (TTY, SSH, etc.)
-login_file=""
-if [ -f "$HOME/.bash_profile" ]; then
-    login_file="$HOME/.bash_profile"
-elif [ -f "$HOME/.profile" ]; then
-    login_file="$HOME/.profile"
-else
-    login_file="$HOME/.bash_profile"
-    touch "$login_file"
-fi
-
-echo "✅ Garantindo execução no terminal login via $login_file"
-marker="# === Wallpaper Auto ==="
-if ! grep -q "$marker" "$login_file"; then
-    {
-        echo ""
-        echo "$marker"
-        echo "/bin/bash $script_path > /dev/null 2>&1 &"
-    } >> "$login_file"
-fi
-
-# 3. Execução via ~/.xinitrc (para usuários de startx)
-xinit_file="$HOME/.xinitrc"
-if [ -f "$xinit_file" ]; then
-    echo "✅ Adicionando ao ~/.xinitrc"
-    if ! grep -q "$marker" "$xinit_file"; then
-        {
-            echo ""
-            echo "$marker"
-            echo "/bin/bash $script_path > /dev/null 2>&1 &"
-        } >> "$xinit_file"
-    fi
-fi
-
 echo ""
 echo "✅ Tudo pronto! O script será executado:"
 echo "  - Diariamente à meia-noite via systemd"
 echo "  - No login gráfico via autostart"
-echo "  - No login terminal (TTY) via $login_file"
-echo "  - E em sessões 'startx' via ~/.xinitrc (se existir)"
 echo ""
 echo "📄 Você pode acompanhar os logs em: $log_path"
 echo ""
