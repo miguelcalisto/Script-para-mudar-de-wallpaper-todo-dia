@@ -109,6 +109,9 @@ systemctl --user daemon-reload
 
 #Remover pastas e arquivos criados
 rm -rf ~/SCRIPTS
+
+#Remover o .desktop
+rm .config/autostart/wallpaper-autostart.desktop 
 ```
 
 ## AVISO
