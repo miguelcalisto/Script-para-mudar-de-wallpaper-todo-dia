@@ -83,8 +83,6 @@ rm -rf ~/SCRIPTS/
 rm ~/.config/autostart/wallpaper-autostart.desktop
 ```
 
-Recarregue a configuração do autostart:
 
 após isso você deve encerrar a sessão
----
 
