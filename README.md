@@ -85,10 +85,6 @@ rm ~/.config/autostart/wallpaper-autostart.desktop
 
 Recarregue a configuração do autostart:
 
-```bash
-# Recarregar o autostart gráfico
-killall -HUP gnome-shell
-```
-
+após isso você deve encerrar a sessão
 ---
 
