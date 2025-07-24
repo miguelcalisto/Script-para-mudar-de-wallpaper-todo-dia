@@ -96,7 +96,7 @@ Description=Mudar wallpaper à meia-noite
 Type=oneshot
 Environment="DISPLAY=:0"
 Environment="DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus"
-ExecStart=/bin/bash /home/debian/SCRIPTS/scripti3.sh
+ExecStart=/bin/bash ${HOME}/SCRIPTS/scripti3.sh
 
 [Install]
 WantedBy=default.target
