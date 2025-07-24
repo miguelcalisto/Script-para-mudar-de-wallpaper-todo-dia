@@ -79,3 +79,48 @@ echo "📄 Você pode acompanhar os logs em: $log_path"
 echo ""
 echo "✅ Wallpaper automático configurado com sucesso!"
 
+
+
+# Configuração do Systemd para a troca automática de wallpaper à meia-noite
+echo ""
+echo "✅ Configurando o systemd para a troca automática de wallpaper à meia-noite..."
+
+# Criação do arquivo wall.service
+service_file="$HOME/.config/systemd/user/wall.service"
+mkdir -p "$(dirname "$service_file")"
+cat > "$service_file" <<EOF
+[Unit]
+Description=Mudar wallpaper à meia-noite
+
+[Service]
+Type=oneshot
+Environment="DISPLAY=:0"
+Environment="DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus"
+ExecStart=/bin/bash /home/debian/SCRIPTS/scripti3.sh
+
+[Install]
+WantedBy=default.target
+EOF
+
+# Criação do arquivo wall.timer
+timer_file="$HOME/.config/systemd/user/wall.timer"
+cat > "$timer_file" <<EOF
+[Unit]
+Description=Timer para mudar wallpaper à meia-noite
+
+[Timer]
+OnCalendar=00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+EOF
+
+# Habilitando o timer
+echo "✅ Habilitando o timer do systemd..."
+systemctl --user daemon-reload
+systemctl --user enable wall.timer
+systemctl --user start wall.timer
+
+echo ""
+echo "✅ Systemd configurado! A troca de wallpaper será feita automaticamente à meia-noite."
