@@ -3,7 +3,7 @@
 Este projeto configura automaticamente a **troca diária de wallpaper** no Linux (Debian ou similar), usando:
 - `feh` para aplicar o wallpaper
 - `bash` para a lógica do script
-- **Autostart gráfico** para agendar a execução diária ao login gráfico
+- **Autostart gráfico** e **systemd** para agendar a execução diária
 
 ---
 
@@ -32,7 +32,7 @@ sudo chmod +x script.sh
 ./script.sh
 ```
 
-O script solicitará o **diretório** ,você deve informar o caminho completo exemplo /home/user/Dowloads/Walls ,onde seus wallpapers estão localizados e configurará o sistema para aplicar automaticamente um novo wallpaper a cada dia.
+O script solicitará o **diretório** onde seus wallpapers estão localizados (ex: `/home/user/Downloads/Walls`) e configurará o sistema para aplicar automaticamente um novo wallpaper a cada dia.
 
 ---
 
@@ -67,7 +67,42 @@ Ao executar o script, ele faz o seguinte:
 5. **Cria um arquivo de autostart**, que:
    - Executa o script automaticamente **no login gráfico**.
 
-6. **Aplica imediatamente o wallpaper do dia** após a execução do script.
+6. **Cria um serviço com systemd**, que:
+   - Permite a execução diária do script de forma programada, **mesmo se o computador não reiniciar**.
+
+---
+
+## 🕒 Execução automática com systemd (opcional)
+
+Além do autostart gráfico, o script também configura um **timer com systemd para executar diariamente à meia-noite**, mesmo que o computador fique ligado por dias sem reiniciar.
+
+Ele cria os seguintes arquivos no diretório do systemd do usuário:
+
+```
+~/.config/systemd/user/
+├── wall.service   # Serviço que executa o script uma vez
+└── wall.timer     # Timer que agenda o serviço todo dia às 00:00
+```
+
+O timer é ativado automaticamente e verifica todos os dias, à meia-noite, se deve trocar o wallpaper.
+
+Você pode verificar se o timer está ativo com:
+
+```bash
+systemctl --user status wall.timer
+```
+
+Para ver quando ele será executado novamente:
+
+```bash
+systemctl --user list-timers
+```
+
+Se quiser desativar:
+
+```bash
+systemctl --user disable --now wall.timer
+```
 
 ---
 
@@ -81,8 +116,14 @@ rm -rf ~/SCRIPTS/
 
 # Remover o arquivo de autostart
 rm ~/.config/autostart/wallpaper-autostart.desktop
+
+# Remover os arquivos do systemd
+rm ~/.config/systemd/user/wall.service
+rm ~/.config/systemd/user/wall.timer
+
+# Desativar o timer (se ainda estiver ativo)
+systemctl --user disable --now wall.timer
 ```
 
-
-após isso você deve encerrar a sessão
+Após isso, recomenda-se encerrar a sessão do usuário para que as alterações tenham efeito.
 
