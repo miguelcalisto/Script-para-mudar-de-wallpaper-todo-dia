@@ -122,6 +122,7 @@ echo "✅ Habilitando e iniciando o timer..."
 systemctl --user daemon-reexec
 systemctl --user daemon-reload
 systemctl --user enable --now wall.timer
+systemctl --user start wall.service
 
 echo ""
 echo "✅ Timer e serviço systemd criados e ativados!"
