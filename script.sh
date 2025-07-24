@@ -81,30 +81,30 @@ echo "✅ Wallpaper automático configurado com sucesso!"
 
 
 
-# Configuração do Systemd para a troca automática de wallpaper à meia-noite
+# === Criando systemd service e timer ===
 echo ""
-echo "✅ Configurando o systemd para a troca automática de wallpaper à meia-noite..."
+echo "✅ Criando arquivos do systemd user para execução automática diária..."
 
-# Criação do arquivo wall.service
-service_file="$HOME/.config/systemd/user/wall.service"
-mkdir -p "$(dirname "$service_file")"
-cat > "$service_file" <<EOF
+systemd_user_dir="$HOME/.config/systemd/user"
+mkdir -p "$systemd_user_dir"
+
+service_path="$systemd_user_dir/wall.service"
+timer_path="$systemd_user_dir/wall.timer"
+
+# Cria o service
+cat > "$service_path" <<EOF
 [Unit]
 Description=Mudar wallpaper à meia-noite
 
 [Service]
 Type=oneshot
 Environment="DISPLAY=:0"
-Environment="DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus"
-ExecStart=/bin/bash ${HOME}/SCRIPTS/scripti3.sh
-
-[Install]
-WantedBy=default.target
+Environment="DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$(id -u)/bus"
+ExecStart=/bin/bash $script_path
 EOF
 
-# Criação do arquivo wall.timer
-timer_file="$HOME/.config/systemd/user/wall.timer"
-cat > "$timer_file" <<EOF
+# Cria o timer
+cat > "$timer_path" <<EOF
 [Unit]
 Description=Timer para mudar wallpaper à meia-noite
 
@@ -116,11 +116,13 @@ Persistent=true
 WantedBy=timers.target
 EOF
 
-# Habilitando o timer
-echo "✅ Habilitando o timer do systemd..."
+# Ativa o timer
+echo ""
+echo "✅ Habilitando e iniciando o timer..."
+systemctl --user daemon-reexec
 systemctl --user daemon-reload
-systemctl --user enable wall.timer
-systemctl --user start wall.timer
+systemctl --user enable --now wall.timer
 
 echo ""
-echo "✅ Systemd configurado! A troca de wallpaper será feita automaticamente à meia-noite."
+echo "✅ Timer e serviço systemd criados e ativados!"
+echo "⏰ O wallpaper será trocado automaticamente todo dia à meia-noite."
