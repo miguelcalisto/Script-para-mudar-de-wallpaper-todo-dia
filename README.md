@@ -68,13 +68,13 @@ Ao executar o script, ele faz o seguinte:
    - Executa o script automaticamente **no login gráfico**.
 
 6. **Cria um serviço com systemd**, que:
-   - Permite a execução diária do script de forma programada, **mesmo se o computador não reiniciar**.
+   - Permite a execução diária do script de forma programada as 00:00.
 
 ---
 
-## 🕒 Execução automática com systemd (opcional)
+## 🕒 Execução automática com systemd 
 
-Além do autostart gráfico, o script também configura um **timer com systemd para executar diariamente à meia-noite**, mesmo que o computador fique ligado por dias sem reiniciar.
+Além do autostart , o script também configura um **timer com systemd para executar diariamente à meia-noite**.
 
 Ele cria os seguintes arquivos no diretório do systemd do usuário:
 
