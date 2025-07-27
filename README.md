@@ -2,8 +2,8 @@
 
 Este projeto configura automaticamente a **troca diária de wallpaper** no Linux (Debian ou similar), usando:
 - `feh` para aplicar o wallpaper
-- `bash` para a lógica do script
-- **Autostart gráfico** e **systemd** para agendar a execução diária
+- `bash` como shell de execução do  script
+- **Autostart em .config** e **systemd** para agendar a execução diária
 
 ---
 
@@ -32,7 +32,8 @@ sudo chmod +x script.sh
 ./script.sh
 ```
 
-O script solicitará o **diretório** onde seus wallpapers estão localizados (ex: `/home/user/Downloads/Walls`) e configurará o sistema para aplicar automaticamente um novo wallpaper a cada dia.
+
+O script solicitará o **diretório** **(O CAMINHO DEVE SER ABSOLUTO)** onde seus wallpapers estão localizados (ex: `/home/user/Downloads/Wallpapers`) e configurará o sistema para aplicar automaticamente um novo wallpaper a cada dia.
 
 ---
 
