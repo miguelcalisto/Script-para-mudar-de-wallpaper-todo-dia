@@ -6,6 +6,7 @@ Este projeto configura automaticamente a **troca diária de wallpaper** no Linux
 - **Autostart em .config** e **systemd** para agendar a execução diária
 
 ---
+**Observação foi testado apenas no debian com i3wm x11**
 
 ## ✅ Requisitos
 
@@ -36,6 +37,7 @@ sudo chmod +x script.sh
 O script solicitará o **diretório** **(O CAMINHO DEVE SER ABSOLUTO)** onde seus wallpapers estão localizados (ex: `/home/user/Downloads/Wallpapers`) e configurará o sistema para aplicar automaticamente um novo wallpaper a cada dia.
 
 ---
+
 
 ## ⚙️ Como funciona
 
