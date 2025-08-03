@@ -1,11 +1,13 @@
 # 📄 Wallpaper Diário
 
 Este projeto configura automaticamente a **troca diária de wallpaper** no Linux (Debian ou similar), usando:
+
 - `feh` para aplicar o wallpaper
 - `bash` como shell de execução do  script
 - **Autostart em .config** e **systemd** para agendar a execução diária
 
 ---
+
 **Observação foi testado apenas no debian com i3wm x11**
 
 ## ✅ Requisitos
@@ -20,24 +22,22 @@ sudo apt install feh
 ## 🛠 Como usar
 
 1. **Clone ou baixe o repositório.**
-2. **Torne o script executável**:
 
 ```bash
-cd /caminho/para/Script-para-mudar-de-wallpaper-todo-dia
-sudo chmod +x script.sh
+git clone https://github.com/miguelcalisto/Script-para-mudar-de-wallpaper-todo-dia.git
 ```
 
-3. **Execute o script**:
+3. **Torne o script executável e execute o script**:
 
 ```bash
+sudo chmod +x script.sh
+
 ./script.sh
 ```
-
 
 O script solicitará o **diretório** **(O CAMINHO DEVE SER ABSOLUTO)** onde seus wallpapers estão localizados (ex: `/home/user/Downloads/Wallpapers`) e configurará o sistema para aplicar automaticamente um novo wallpaper a cada dia.
 
 ---
-
 
 ## ⚙️ Como funciona
 
@@ -61,6 +61,7 @@ Ao executar o script, ele faz o seguinte:
 ```
 
 4. **Gera o script `script.sh`**, responsável por:
+   
    - Obter o **dia do ano atual** (ex: 001 a 365).
    - Listar as imagens da pasta ordenadas por **tamanho decrescente**.
    - Calcular o índice da imagem do dia com base no número do dia.
@@ -68,14 +69,16 @@ Ao executar o script, ele faz o seguinte:
    - Registrar o processo em um log localizado em `~/SCRIPTS/LOGS/`.
 
 5. **Cria um arquivo de autostart**, que:
+   
    - Executa o script automaticamente **no login gráfico**.
 
 6. **Cria um serviço com systemd**, que:
+   
    - Permite a execução diária do script de forma programada as 00:00.
 
 ---
 
-## 🕒 Execução automática com systemd 
+## 🕒 Execução automática com systemd
 
 Além do autostart , o script também configura um **timer com systemd para executar diariamente à meia-noite**.
 
@@ -129,4 +132,3 @@ systemctl --user disable --now wall.timer
 ```
 
 Após isso, recomenda-se encerrar a sessão do usuário para que as alterações tenham efeito.
-
