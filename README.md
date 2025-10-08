@@ -16,7 +16,7 @@ Antes de usar o script, instale o pacote `feh`:
 
 ```bash
 sudo apt update
-sudo apt install feh
+sudo apt install feh --yes
 ```
 
 ## 🛠 Como usar
