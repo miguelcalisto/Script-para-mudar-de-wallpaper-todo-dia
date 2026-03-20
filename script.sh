@@ -4,31 +4,26 @@ echo ""
 echo "=== Configurador automático de troca diária de wallpaper ==="
 echo ""
 
-# Verifica se o feh está instalado
-if ! command -v feh &> /dev/null; then
+if ! command -v feh &>/dev/null; then
     echo "❌ O programa 'feh' não está instalado. Por favor instale com:"
     echo "    sudo apt install feh"
     exit 1
 fi
 
-# Solicita o diretório de wallpapers
 read -rp "Informe o caminho da pasta com os wallpapers: " wallpaper_dir
-wallpaper_dir=$(eval echo "$wallpaper_dir")  # Expande ~ corretamente
+wallpaper_dir=$(eval echo "$wallpaper_dir")
 
-# Verifica se a pasta existe
 if [ ! -d "$wallpaper_dir" ]; then
     echo "❌ A pasta '$wallpaper_dir' não existe!"
     exit 1
 fi
 
-# Cria os diretórios necessários
 mkdir -p ~/SCRIPTS/LOGS
 log_path=~/SCRIPTS/LOGS/logs_scriptDataDoAnoTamanho.log
 
-# Criando o script de troca de wallpaper
 script_path=~/SCRIPTS/scripti3.sh
 echo "✅ Criando script de troca de wallpaper em $script_path"
-cat > "$script_path" <<EOF
+cat >"$script_path" <<EOF
 #!/usr/bin/env bash
 
 wallpaper_dir="$wallpaper_dir"
@@ -53,7 +48,6 @@ EOF
 
 chmod +x "$script_path"
 
-# Fallback: apenas autostart gráfico
 echo ""
 echo "✅ Adicionando método de fallback para login gráfico..."
 
@@ -62,7 +56,7 @@ autostart_file="$autostart_dir/wallpaper-autostart.desktop"
 mkdir -p "$autostart_dir"
 
 echo "✅ Criando autostart em $autostart_file"
-cat > "$autostart_file" <<EOF
+cat >"$autostart_file" <<EOF
 [Desktop Entry]
 Type=Application
 Exec=/bin/bash $script_path
@@ -79,9 +73,6 @@ echo "📄 Você pode acompanhar os logs em: $log_path"
 echo ""
 echo "✅ Wallpaper automático configurado com sucesso!"
 
-
-
-# === Criando systemd service e timer ===
 echo ""
 echo "✅ Criando arquivos do systemd user para execução automática diária..."
 
@@ -91,8 +82,7 @@ mkdir -p "$systemd_user_dir"
 service_path="$systemd_user_dir/wall.service"
 timer_path="$systemd_user_dir/wall.timer"
 
-# Cria o service
-cat > "$service_path" <<EOF
+cat >"$service_path" <<EOF
 [Unit]
 Description=Mudar wallpaper à meia-noite
 
@@ -103,8 +93,7 @@ Environment="DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$(id -u)/bus"
 ExecStart=/bin/bash $script_path
 EOF
 
-# Cria o timer
-cat > "$timer_path" <<EOF
+cat >"$timer_path" <<EOF
 [Unit]
 Description=Timer para mudar wallpaper à meia-noite
 
@@ -116,7 +105,6 @@ Persistent=true
 WantedBy=timers.target
 EOF
 
-# Ativa o timer
 echo ""
 echo "✅ Habilitando e iniciando o timer..."
 systemctl --user daemon-reexec
