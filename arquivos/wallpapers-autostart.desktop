@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Exec=/bin/bash $script_path
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+Name=Mudar Wallpaper
+Comment=Troca automática de wallpaper no login gráfico
