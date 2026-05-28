@@ -1,26 +1,31 @@
 #!/usr/bin/env bash
 
-wallpaper_dir="$HOME/Imagens/Wallpapers"
+DIR_WALLPAPERS="$HOME/Imagens/Wallpapers"
+ARQUIVO_LOG="$HOME/SCRIPTS/LOGS/log.log"
 
-mapfile -t wallpapers < <(ls -1S "$wallpaper_dir" | grep -iE '\.(png|jpe?g|webp|svg)$')
+mkdir -p "$(dirname "$ARQUIVO_LOG")"
 
-num=${#wallpapers[@]}
+data_atual=$(date "+%d/%m/%Y - %H:%M:%S")
 
-    if [ "$num" -eq 0 ]; then
-        echo "Nenhuma imagem válida encontrada em $wallpaper_dir" >>/home/debian/SCRIPTS/LOGS/log.log
-        exit 1
-    fi
+shopt -s nullglob nocaseglob
 
-    day_of_year=$(date +%j)
-    day_of_year=$((10#$day_of_year))
+wallpapers=("$DIR_WALLPAPERS"/*.{png,jpg,jpeg,webp,svg})
 
-    index=$(((day_of_year - 1) % num))
+total_wallpapers=${#wallpapers[@]}
 
-    selected="$wallpaper_dir/${wallpapers[$index]}"
+if [ "$total_wallpapers" -eq 0 ]; then
+echo "[$data_atual] Erro: Nenhuma imagem válida encontrada em $DIR_WALLPAPERS"
+exit 1
+fi
 
-    current_datetime=$(date "+%d/%m/%Y - %H:%M:%S")
+dia_do_ano=$(date +%j | sed 's/^0*//')
 
-    echo "Mudando para o wallpaper do dia $day_of_year: $selected na data: $current_datetime" >>/home/debian/SCRIPTS/LOGS/log.log
+indice=$(( (dia_do_ano - 1) % total_wallpapers ))
 
-    feh --bg-scale "$selected" >>/home/debian/SCRIPTS/LOGS/log.log 2>&1
-    feh --bg-fill "$selected"
+wallpaper_escolhido="${wallpapers[$indice]}"
+
+echo "[$data_atual] Mudando para o wallpaper do dia $dia_do_ano: $wallpaper_escolhido" >> "$ARQUIVO_LOG"
+
+export DISPLAY="${DISPLAY:-:0}"
+
+feh --bg-fill "$wallpaper_escolhido" >> "$ARQUIVO_LOG" 2>&1
