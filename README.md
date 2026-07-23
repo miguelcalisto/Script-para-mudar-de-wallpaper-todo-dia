@@ -29,7 +29,7 @@ sudo chmod +x script.sh
 ./script.sh
 ```
 
-O script solicitará o **diretório** **(O CAMINHO DEVE SER ABSOLUTO)** onde seus wallpapers estão localizados (ex: `/home/user/Downloads/Wallpapers`) e configurará o sistema para aplicar automaticamente um novo wallpaper a cada dia.
+O script solicitará o **diretório** **(O CAMINHO DEVE SER ABSOLUTO)** onde seus wallpapers estão localizados (ex: `/home/user/Downloads/Wallpapers`) isso vai mover eles para ~/Imagens/Wallpapers/
 
 ---
 
@@ -38,14 +38,12 @@ O script solicitará o **diretório** **(O CAMINHO DEVE SER ABSOLUTO)** onde seu
 ```
 ~/SCRIPTS/
 ├── script.sh                     # Script principal que contém a lógica de troca diária de wallpapers
-└── LOGS/
-└── logs_scriptDataDoAnoTamanho.log  # Log com histórico das execuções
 ~/.config/autostart/
 └── wallpaper-autostart.desktop  # Arquivo de autostart para executar o script no login gráfico
-
 ~/.config/systemd/user/
 ├── wall.service   # Serviço que executa o script uma vez
 └── wall.timer     # Timer que agenda o serviço todo dia às 00:00
+~/log.log # log da mudança dos Wallpapers
 
 ```
 
