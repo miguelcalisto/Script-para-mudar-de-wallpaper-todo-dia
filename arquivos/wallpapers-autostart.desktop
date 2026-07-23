@@ -1,6 +1,8 @@
 [Desktop Entry]
 Type=Application
-Exec=/bin/bash $script_path
+Exec=%h/.config/change-wallpaper/script.sh
+# talvez nao de 
+# Exec=/bin/bash -c "$HOME/.config/change-wallpaper/script.sh"
 Hidden=false
 NoDisplay=false
 X-GNOME-Autostart-enabled=true

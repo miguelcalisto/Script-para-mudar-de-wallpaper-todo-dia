@@ -2,8 +2,7 @@
 
 DIR_WALLPAPERS="$HOME/Imagens/Wallpapers"
 
-ARQUIVO_LOG="$HOME/log.log"
-
+ARQUIVO_LOG="$HOME/.config/change-wallpaper/log.log"
 shopt -s nullglob
 
 data_atual=$(date "+%d/%m/%Y - %H:%M:%S")

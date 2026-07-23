@@ -29,25 +29,29 @@ sudo chmod +x script.sh
 ./script.sh
 ```
 
-O script solicitará o **diretório** **(O CAMINHO DEVE SER ABSOLUTO)** onde seus wallpapers estão localizados (ex: `/home/user/Downloads/Wallpapers`) isso vai mover eles para ~/Imagens/Wallpapers/
+O script solicitará o **diretório** **(O CAMINHO DEVE SER ABSOLUTO)** onde seus wallpapers estão localizados (ex: `/home/user/Downloads/Wallpapers`) e irá movê-los para `~/Imagens/Wallpapers/`.
 
 ---
 
-3. **estrutura de diretórios**
+3. **Estrutura de diretórios**
 
-```
-~/SCRIPTS/
+```text
+~/.config/change-wallpaper/
 ├── script.sh                     # Script principal que contém a lógica de troca diária de wallpapers
-~/.config/autostart/
-└── wallpaper-autostart.desktop  # Arquivo de autostart para executar o script no login gráfico
-~/.config/systemd/user/
-├── wall.service   # Serviço que executa o script uma vez
-└── wall.timer     # Timer que agenda o serviço todo dia às 00:00
-~/log.log # log da mudança dos Wallpapers
+└── log.log                       # Log da mudança dos wallpapers
 
+~/.config/autostart/
+└── wallpaper-autostart.desktop   # Arquivo de autostart para executar o script no login gráfico
+
+~/.config/systemd/user/
+├── wall.service                  # Serviço que executa o script uma vez
+└── wall.timer                    # Timer que agenda o serviço todo dia às 00:00
+
+~/Imagens/Wallpapers/
+└── ...                           # Wallpapers do usuário
 ```
 
-verificar se o timer está ativo com:
+Verificar se o timer está ativo com:
 
 ```bash
 systemctl --user status wall.timer
@@ -68,7 +72,7 @@ systemctl --user disable --now wall.timer
 ## ❌ Como remover completamente
 
 ```bash
-rm -rf ~/SCRIPTS/
+rm -rf ~/.config/change-wallpaper
 
 rm ~/.config/autostart/wallpaper-autostart.desktop
 

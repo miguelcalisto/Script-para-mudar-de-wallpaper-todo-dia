@@ -11,20 +11,19 @@ if [ ! -d "$wallpaper_dir" ]; then
     exit 1
 fi
 
-mkdir -p ~/Imagens/Wallpapers/
-cp -r "$wallpaper_dir"/* ~/Imagens/Wallpapers/
+mkdir -p "$HOME/Imagens/Wallpapers"
+cp -r "$wallpaper_dir"/* "$HOME/Imagens/Wallpapers/"
 
-# cp -r "$wallpaper_dir"/. ~/Imagens/Wallpapers/
+config_dir="$HOME/.config/change-wallpaper"
+mkdir -p "$config_dir"
 
-mkdir -p ~/SCRIPTS/LOGS
-
-script_path=~/SCRIPTS/scripti3.sh
-mkdir -p ~/SCRIPTS
+script_path="$config_dir/script.sh"
 
 echo "✅ Criando script de troca de wallpaper em $script_path"
 cp ./arquivos/change-wallpapers.sh "$script_path"
-
 chmod +x "$script_path"
+
+touch "$config_dir/log.log"
 
 echo ""
 echo "✅ Script criado com sucesso!"
@@ -36,7 +35,6 @@ autostart_dir="$HOME/.config/autostart"
 autostart_file="$autostart_dir/wallpaper-autostart.desktop"
 
 mkdir -p "$autostart_dir"
-
 cp ./arquivos/wallpapers-autostart.desktop "$autostart_file"
 
 echo "✔ Autostart criado em $autostart_file"
@@ -47,13 +45,11 @@ echo "✅ Criando serviço e timer do systemd..."
 systemd_user_dir="$HOME/.config/systemd/user"
 mkdir -p "$systemd_user_dir"
 
-cp ./arquivos/wall.timer ~/.config/systemd/user/wall.timer
-cp ./arquivos/wall.service ~/.config/systemd/user/wall.service
+cp ./arquivos/wall.timer "$systemd_user_dir/wall.timer"
+cp ./arquivos/wall.service "$systemd_user_dir/wall.service"
 
 systemctl --user daemon-reload
-
 systemctl --user enable --now wall.timer
-
 systemctl --user start wall.service
 
 echo ""

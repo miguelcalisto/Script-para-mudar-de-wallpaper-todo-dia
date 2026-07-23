@@ -1,5 +1,5 @@
 [Unit]
-Description=Timer para mudar wallpaper às 00:00 e 12:00
+Description=Timer para mudar wallpaper diariamente às 00:00
 
 [Timer]
 OnCalendar=00:00
